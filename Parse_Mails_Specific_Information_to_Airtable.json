@@ -1,0 +1,151 @@
+{
+  "name": "My workflow 3",
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"subject\"]}}\n",
+              "operation": "regex",
+              "value2": "(Bestätigung|Rechnung)"
+            }
+          ]
+        }
+      },
+      "name": "Filter auf Schlüsselwörter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        200,
+        0
+      ],
+      "id": "60ede6aa-ae94-41d5-92b8-90455ed6b3fd"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableTokenApi",
+        "operation": "append",
+        "application": {
+          "__rl": true,
+          "value": "https://airtable.com/appkMJq0a1I9PoHdb/tblXx5GPIski2XHoY/viwt5Fa2BTplC1myH?blocks=hide",
+          "mode": "url"
+        },
+        "table": {
+          "__rl": true,
+          "value": "https://airtable.com/appkMJq0a1I9PoHdb/tblXx5GPIski2XHoY/viwt5Fa2BTplC1myH?blocks=hide",
+          "mode": "url"
+        },
+        "options": {}
+      },
+      "name": "In Airtable speichern",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [
+        1100,
+        0
+      ],
+      "id": "b5b74b22-bb06-4f8a-b653-388784298e9c",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "0KIY8NGBHTWbKuww",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9f2b7c52-58ec-4e6b-abdb-52c70ccb5969",
+      "name": "Microsoft Outlook Trigger",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "cetnEIMdmjskITwN",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.bodyPreview || \"\";\n\n// Helper: DD.MM.YYYY → YYYY-MM-DD\nconst toIso = (str) => {\n  const [dd, mm, yyyy] = str.split(\".\");\n  return `${yyyy}-${mm}-${dd}`;\n};\n\nconst anreise = raw.match(/Anreise:\\s*(\\d{2}\\.\\d{2}\\.\\d{4})/);\nconst abreise = raw.match(/Abreise:\\s*(\\d{2}\\.\\d{2}\\.\\d{4})/);\nconst resnr = raw.match(/Reservierungsnummer:\\s*(\\d+)/);\nconst betrag = raw.match(/Betrag:\\s*(\\d+[,\\.]?\\d*)\\s*€/);\n\nconst result = {\n  Betreff: $json.subject || \"\"\n};\n\nif (anreise) result.Anreise = toIso(anreise[1]);\nif (abreise) result.Abreise = toIso(abreise[1]);\nif (resnr) result.Reservierungsnummer = resnr[1];\nif (betrag) result.Preis = betrag[1].replace(\",\", \".\") + \" €\";\n\nreturn [{ json: result }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "5b5b6fad-77f5-456b-b3cd-5c5667ef6459",
+      "name": "Code"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Filter auf Schlüsselwörter": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Microsoft Outlook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter auf Schlüsselwörter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "In Airtable speichern",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b482f1ea-337b-4d8c-b2fd-d50e5f049b91",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "99ef2f6727ad68db284a0ee29056385717f8d72c36a0d9bb56edc6a4200d41bb"
+  },
+  "id": "Tl1PfYowadLnTDt3",
+  "tags": []
+}
